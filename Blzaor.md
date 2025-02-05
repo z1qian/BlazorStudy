@@ -1094,7 +1094,29 @@
   /_content/{PACKAGE_ID}/{PATH_AND_FILENAME_INSIDE_WWWROOT}
   ```
 
+## 案例：四子棋游戏
 
+### 设置 Blzaor 组件的样式
 
+* 使用 Blazor 组件中称为 CSS 隔离的功能来创建仅应用于该组件内容的样式规则。 通过创建与组件同名的文件并添加 .css 文件扩展名，Blazor 可将此命名识别为仅应用于相应组件中 HTML 内容的样式
 
+* Blazor 组件还可使用特殊 `HeadContent` 标记定义要添加到页面 HTML 标头的内容，此 `style` 标记和内容呈现在页面的 `head` 标记内
 
+  ```c#
+  <HeadContent>
+      <style>
+          ...my styles here
+      </style>
+  </HeadContent>
+  ```
+
+### 处理 UI 事件
+
+* 如果要处理 UI 事件，需要使用*交互式呈现模式*呈现 Blazor 组件。 默认情况下，Blazor 组件是从服务器以静态方式呈现的。 可以使用特性 `@rendermode` 将交互式呈现模式应用于组件：`<Board @rendermode="InteractiveServer" />`
+* `InteractiveServer` 呈现模式会通过与浏览器的 WebSocket 连接从服务器处理组件的 UI 事件
+
+### 在代码中表示状态
+
+* 首先，什么是状态？ 游戏中的状态指的是游戏中发生的情况、你拥有的分数、你的游戏位置在哪里等
+* 在游戏开发中谈到状态时，一项重要的指导是将状态与 UI 分开，除了其他好处以外，这样还能让你更轻松地进行修改，且让代码更易于阅读
+  * 在 Blazor 的上下文中，这意味着状态和围绕状态的逻辑应位于其自己的 C# 类中
