@@ -1,0 +1,51 @@
+@page "/pizzas"
+@using BlazingPizza.Data
+@inject PizzaService PizzaSvc
+@* 给BlazingPizza.Data.Pizza取别名为：MyPizza *@
+@using MyPizza = BlazingPizza.Data.Pizza
+
+
+<h1>Choose your pizza</h1>
+<p>We have all these delicious recipes:</p>
+
+@if (todaysPizzas == null)
+{
+    <p>We're finding out what pizzas are available today...</p>
+}
+else
+{
+    <!-- This markup will be rendered once the pizzas are loaded -->
+    <table class="table">
+        <thead>
+            <tr class="table-header">
+                <th>Pizza Name</th>
+                <th>Description</th>
+                <th>Vegetarian?</th>
+                <th>Vegan?</th>
+                <th>Price</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var pizza in todaysPizzas)
+            {
+                <tr class="table-row">
+                    <td class="table-cell">@pizza.Name</td>
+                    <td class="table-cell">@pizza.Description</td>
+                    <td class="table-cell">@pizza.Vegetarian</td>
+                    <td class="table-cell">@pizza.Vegan</td>
+                    <td class="table-cell">@pizza.Price</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code{
+    private MyPizza[] todaysPizzas;
+
+    // 当组件初始化完成且收到初始参数时，在呈现页面并显示给用户之前，将触发此事件
+    protected override async Task OnInitializedAsync()
+    {
+        todaysPizzas = await PizzaSvc.GetPizzasAsync();
+    }
+}

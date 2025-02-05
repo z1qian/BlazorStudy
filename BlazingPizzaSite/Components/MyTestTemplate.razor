@@ -1,0 +1,11 @@
+﻿<div class="template-container">
+    <h3>这是模板组件</h3>
+    <div>
+        @ChildContent
+    </div>
+</div>
+
+@code {
+    [Parameter] 
+    public RenderFragment ChildContent { get; set; }
+}

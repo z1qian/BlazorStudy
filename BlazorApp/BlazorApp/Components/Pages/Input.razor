@@ -1,0 +1,11 @@
+﻿@page "/input"
+@rendermode InteractiveServer
+<h3>Input</h3>
+
+<input @bind="text" />
+<button @onclick="() => text = string.Empty">Clear</button>
+<p>内容是：@text</p>
+
+@code {
+    string text = "";
+}

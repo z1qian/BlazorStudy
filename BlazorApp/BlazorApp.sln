@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.12.35707.178
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlazorApp", "BlazorApp\BlazorApp.csproj", "{B459309B-51E1-4919-9168-B271B3338DE9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FirstClassLibrary", "..\FirstClassLibrary\FirstClassLibrary\FirstClassLibrary.csproj", "{35ADE1EC-580D-4DE1-8AE3-32579B6AF95C}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B459309B-51E1-4919-9168-B271B3338DE9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B459309B-51E1-4919-9168-B271B3338DE9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B459309B-51E1-4919-9168-B271B3338DE9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B459309B-51E1-4919-9168-B271B3338DE9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{35ADE1EC-580D-4DE1-8AE3-32579B6AF95C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{35ADE1EC-580D-4DE1-8AE3-32579B6AF95C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{35ADE1EC-580D-4DE1-8AE3-32579B6AF95C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{35ADE1EC-580D-4DE1-8AE3-32579B6AF95C}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
