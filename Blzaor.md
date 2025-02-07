@@ -1120,3 +1120,104 @@
 * 首先，什么是状态？ 游戏中的状态指的是游戏中发生的情况、你拥有的分数、你的游戏位置在哪里等
 * 在游戏开发中谈到状态时，一项重要的指导是将状态与 UI 分开，除了其他好处以外，这样还能让你更轻松地进行修改，且让代码更易于阅读
   * 在 Blazor 的上下文中，这意味着状态和围绕状态的逻辑应位于其自己的 C# 类中
+
+## 使用 Blazor 混合和 .NET MAUI 生成移动和桌面应用
+
+* 通过 Blazor，C# 开发人员可运用自身技能使用 C# 生成 Web 应用。 Blazor Hybrid 使开发人员能够从本机移动和桌面客户端应用中使用 Blazor Web UI 组件（称为 Razor 组件）。 Blazor Hybrid 应用使用了 Web 和本机客户端开发的“混合”。
+* Blazor Hybrid 支持通过以下方式使用 Razor 组件：
+  - .NET MAUI（多平台用户界面）
+  - Windows 窗体 (WinForms)
+  - Windows Presentation Foundation (WPF)
+* 借助 Blazor，开发人员可使用常用语言、框架和工具生成 Web 应用的前端和后端逻辑。 使用 .NET MAUI 时，可以通过单个项目构建多平台应用（包括 iOS、Android、macOS 和 Windows），并访问适用于移动和桌面平台的平台特定源代码和资源。 将这两种技术与 Blazor Hybrid 相结合后，开发人员可以构建利用共享 UI 组件和逻辑的本机客户端和 Web 应用。 他们可以将 Blazor Hybrid 用于整个本机应用程序或本机应用程序的某些部分。
+
+### 什么是 Blazor Hybrid？
+
+* Blazor Hybrid 使开发人员能够将桌面和移动本机客户端框架与 .NET 和 Blazor 结合使用
+* 在 Blazor Hybrid 应用中，Razor 组件在设备上是本机运行的。 这些组件通过本地互操作通道呈现到嵌入式 Web 视图控件。 组件不在浏览器中运行，并且不涉及 WebAssembly。 Razor 组件可快速加载和执行代码，这些组件可通过 .NET 平台完全访问设备的本机功能。
+
+### 什么是 .NET MAUI？
+
+* .NET 多平台应用 UI (.NET MAUI) 是一个跨平台框架，用于使用 C# 和 XAML 创建本机移动和桌面应用。 使用 .NET MAUI，可从单个共享代码库开发可在 Android、iOS、macOS 和 Windows 上运行的应用。 .NET MAUI 的主要目的之一是使你能够在单个代码库中实现尽可能多的应用逻辑和 UI 布局。 .NET MAUI 将 Android、iOS、macOS 和 Windows API 统一到单个 API 中，提供“编写一次就能在任何地方运行”的开发人员体验，同时还提供了对每个原生平台各个方面的深入访问
+
+  
+
+![](https://learn.microsoft.com/zh-cn/training/aspnetcore/build-blazor-hybrid/media/dotnet-maui.png)
+
+### 使用 .NET MAUI 的 Blazor Hybrid 应用
+
+* Blazor Hybrid 支持内置于 .NET MAUI 框架中。 .NET MAUI 包含 BlazorWebView 控件，该控件允许将 Razor 组件呈现到嵌入式 Web 视图中。 通过结合使用 .NET MAUI 和 Blazor，可以跨移动设备、桌面设备和 Web 重复使用一组 Web UI 组件。
+
+### .NET MAUI 项目文件
+
+* App.xaml：此文件定义应用在 XAML 布局中使用的应用程序资源。 默认资源位于 `Resources` 文件夹中，并为 .NET MAUI 的每个内置控件定义应用范围内的颜色和默认样式。
+
+* App.xaml.cs：App.xaml 文件的代码隐藏。 此文件定义 App 类。 此类表示运行时的应用程序。 此类中的构造函数创建一个初始窗口并将其分配给 `MainPage` 属性；此属性确定应用程序开始运行时显示哪个页面。 此外，此类让你能够替代常见的平台中性应用程序生命周期事件处理程序。 事件包括 `OnStart`、`OnResume` 和 `OnSleep`。
+
+* MainPage.xaml：此文件包含用户界面定义。 .NET MAUI Blazor 应用模板生成的示例应用包括 `BlazorWebView`，用于在 CSS 选择器 (`#app`) 指定的位置加载指定主机 HTML 页面 (`wwwroot/index.html`) 中的 `Components.Routes` 组件。
+
+  ```xml
+  <?xml version="1.0" encoding="utf-8" ?>
+  <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+              xmlns:local="clr-namespace:BlazorHybridApp"
+              x:Class="BlazorHybridApp.MainPage"
+              BackgroundColor="{DynamicResource PageBackgroundColor}">
+  
+      <BlazorWebView x:Name="blazorWebView" HostPage="wwwroot/index.html">
+          <BlazorWebView.RootComponents>
+              <RootComponent Selector="#app" ComponentType="{x:Type local:Components.Routes}" />
+          </BlazorWebView.RootComponents>
+      </BlazorWebView>
+  
+  </ContentPage>
+  ```
+
+* MainPage.xaml.cs：页面的代码隐藏。 在此文件中，你为各种事件处理程序和页面上的 .NET MAUI 控件触发的其他操作定义逻辑。 模板中的示例代码仅具有默认构造函数，因为所有用户界面和事件都位于 Blazor 组件中。
+
+  ```c#
+  namespace BlazorHybridApp;
+  
+  public partial class MainPage : ContentPage
+  {
+      public MainPage()
+      {
+          InitializeComponent();
+      }
+  }
+  ```
+
+* MauiProgram.cs：每个本机平台都有一个不同的起点，用于创建和初始化应用程序。 可以在项目中的 Platforms 文件夹下找到此代码。 此代码特定于平台，但最后调用静态 `MauiProgram` 类的 `CreateMauiApp` 方法。 使用 `CreateMauiApp` 方法通过创建应用生成器对象来配置应用程序。 至少需要指定描述应用程序的类。 可以使用应用生成器对象的 `UseMauiApp` 泛型方法执行此操作，类型参数指定应用程序类。 应用生成器还提供用于注册字体、为依赖项注入配置服务、为控件注册自定义处理程序等任务的方法。 以下代码演示了使用应用生成器注册字体、注册天气服务以及通过 `AddMauiBlazorWebView` 方法添加对 Blazor Hybrid 的支持的示例：
+
+  ```c#
+  using Microsoft.AspNetCore.Components.WebView.Maui;
+  using BlazorHybridApp.Data;
+  
+  namespace BlazorHybridApp;
+  
+  public static class MauiProgram
+  {
+      public static MauiApp CreateMauiApp()
+      {
+          var builder = MauiApp.CreateBuilder();
+          builder
+          .UseMauiApp<App>()
+          .ConfigureFonts(fonts =>
+          {
+              fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
+          });
+  
+          builder.Services.AddMauiBlazorWebView();
+  
+          #if DEBUG
+          builder.Services.AddBlazorWebViewDeveloperTools();
+          builder.Logging.AddDebug();
+          #endif
+  
+          return builder.Build();
+      }
+  }
+  ```
+
+### Blazor Hybrid 中的数据绑定和事件
+
+*  在 Blazor 应用中，可在单独的 .cs 文件中添加 C# 代码，也可在 Razor 组件中添加内联
