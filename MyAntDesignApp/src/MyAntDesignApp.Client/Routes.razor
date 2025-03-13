@@ -1,0 +1,11 @@
+﻿@* AdditionalAssemblies="" 告诉 Routes 组件 在客户端 WebAssembly 运行时，也要去额外的程序集（如 client 项目）中查找路由组件*@
+<Router AppAssembly="typeof(Program).Assembly" >
+    <Found Context="routeData">
+        <CascadingValue Value="routeData">
+            <RouteView RouteData="routeData" DefaultLayout="typeof(MyAntDesignApp.Layouts.BasicLayout)" />
+        </CascadingValue>
+        <FocusOnNavigate RouteData="routeData" Selector="h1" />
+    </Found>
+</Router>
+
+<AntContainer />

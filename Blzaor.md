@@ -91,116 +91,129 @@
 
 ## 组件之间共享信息
 
-* 使用组件参数或级联参数将值从父组件发送到子组件。 `AppState` 模式是另一种可用于存储值并从应用程序中的任何组件访问这些值的方法
+在 Blazor 中，组件之间可以通过以下三种方式共享信息：
 
-### 使用组件参数与其他组件共享信息
+1. **组件参数（[Parameter]）**：用于 **父组件向子组件传递数据**。
+2. **级联参数（[CascadingParameter]）**：适用于 **多层级组件共享数据**，避免手动逐层传递。
+3. **AppState 共享状态**：用于 **全局状态管理**，使数据在整个应用中共享。
 
-* 在子组件上定义这些参数，然后在父组件中设置其值
+### 1. 使用组件参数（[Parameter]）共享信息
 
-* 子组件中定义组件参数。 将其定义为 C# 公共属性，并使用 `[Parameter]` 特性对其进行修饰
+适用于 **父组件向子组件传递数据**。
 
-  ```c#
-  <h2>New Pizza: @PizzaName</h2>
-  
-  <p>@PizzaDescription</p>
-  
-  @code {
-      [Parameter]
-      public string PizzaName { get; set; }
-      
-      
-      // 如果父组件不传递值，将呈现此值。 否则，它将被从父组件传递的值替代
-      [Parameter]
-      public string PizzaDescription { get; set; } = "The best pizza you've ever tasted."
-  }
-  ```
+#### **基本用法**
 
-* 还可以将项目中的自定义类用作组件参数
+- 在 **子组件** 中，定义 **带** **`[Parameter]`** **特性的公共属性**，用于接收数据。
+- 在 **父组件** 中，直接通过 **属性赋值** 传递数据。
 
-  ```c#
-  <h2>New Topping: @Topping.Name</h2>
-  
-  <p>Ingredients: @Topping.Ingredients</p>
-  
-  @code {
-      [Parameter]
-      public PizzaTopping Topping { get; set; }
-  }
-  ```
+#### **示例：字符串参数**
 
-* 在父组件中，使用子组件标记的属性设置参数值。 直接设置简单组件。 借助基于自定义类的参数，使用内联 C# 代码创建该类的新实例并设置其值
+```c#
+@code {
+    [Parameter]
+    public string PizzaName { get; set; }
 
-  ```c#
-  @page "/pizzas-toppings"
-  
-  <h1>Our Latest Pizzas and Topping</h1>
-  
-  <Pizza PizzaName="Hawaiian" PizzaDescription="The one with pineapple" />
-  
-  <PizzaTopping Topping="@(new PizzaTopping() { Name = "Chilli Sauce", Ingredients = "Three kinds of chilli." })" />
-  ```
+	// 如果父组件不传递值，将呈现此值。 否则，它将被从父组件传递的值替代
+    [Parameter]
+    public string PizzaDescription { get; set; } = "The best pizza you've ever tasted.";
+}
+```
 
-### 使用级联参数共享信息
+#### **示例：对象参数**
 
-* 在组件中设置级联参数的值时，其值将自动提供给所有子组件
+```c#
+@code {
+    [Parameter]
+    public PizzaTopping Topping { get; set; }
+}
+```
 
-* 在父组件中，使用 `<CascadingValue>` 标记指定将级联到所有子组件的信息。 此标记作为内置的 `Blazor` 组件实现。 在该标记内呈现的任何组件都能够访问该值
+#### **示例：父组件传递参数**
 
-  ```c#
-  @page "/specialoffers"
-  
-  <h1>Special Offers</h1>
-  
-  <CascadingValue Name="DealName" Value="Throwback Thursday">
-      <!-- 在此呈现的任何后代组件都可以访问级联值。 -->
-  </CascadingValue>
-  ```
+```c#
+<Pizza PizzaName="Hawaiian" PizzaDescription="The one with pineapple" />
+<PizzaTopping Topping="@(new PizzaTopping() { Name = "Chilli Sauce", Ingredients = "Three kinds of chilli." })" />
+```
 
-* 在子组件中，可以通过使用组件成员并使用 `[CascadingParameter]` 特性对其进行修饰来访问级联值
+### 2. 使用级联参数（[CascadingParameter]）共享信息
 
-  ```c#
-  <h2>Deal: @DealName</h2>
-  
-  @code {
-      [CascadingParameter(Name="DealName")]
-      private string DealName { get; set; }
-  }
-  ```
+适用于 **多层级组件共享数据**，避免手动逐层传递。
 
-* 至于组件参数，如果有更复杂的需求，可以将对象作为级联参数传递
+#### **基本用法**
 
-* 在上面的示例中，级联值由父级中的 `Name` 属性标识，与 `[CascadingParameter]` 属性中的 `Name` 值匹配。 可以选择省略这些名称，在这种情况下，属性将按类型匹配。 只有一个该类型的参数时，可省略名称。 如果要实现两个不同字符串值的级联，则必须使用参数名称以避免任何歧义
+- 在 **父组件** 中，使用 `<CascadingValue>` 提供级联数据。
+- 在 **子组件** 中，使用 `[CascadingParameter]` 接收数据。
 
-### 使用 AppState 共享信息
+#### **示例：父组件提供级联参数**
 
-*  创建一个定义要存储的属性的类，并将其注册为作用域服务。 在要设置或使用 `AppState` 值的任何组件中，注入该服务，然后可以访问其属性。 不同于组件参数和级联参数，`AppState` 中的值可用于应用程序中的所有组件，即使这些组件不是存储该值的组件的子组件也是如此
+```c#
+<CascadingValue Name="DealName" Value="Throwback Thursday">
+    <!-- 这里的所有子组件都能访问 "DealName" 这个值 -->
+</CascadingValue>
+```
 
-  ```c#
-  public class PizzaSalesState
-  {
-      public int PizzasSoldToday { get; set; }
-  }
-  
-  // Add the AppState class
-  builder.Services.AddScoped<PizzaSalesState>();
-  
-  
-  @page "/"
-  @inject PizzaSalesState SalesState
-  
-  <h1>Welcome to Blazing Pizzas</h1>
-  
-  <p>Today, we've sold this many pizzas: @SalesState.PizzasSoldToday</p>
-  
-  <button @onclick="IncrementSales">Buy a Pizza</button>
-  
-  @code {
-      private void IncrementSales()
-      {
-          SalesState.PizzasSoldToday++;
-      }
-  }
-  ```
+#### **示例：子组件接收级联参数**
+
+```c#
+@code {
+    [CascadingParameter(Name="DealName")]
+    private string DealName { get; set; }
+}
+```
+
+**注意**：如果只有一个该类型的参数，可省略 `Name` 进行 **类型匹配**。
+
+### 3. 使用 AppState 共享信息（全局状态管理）
+
+适用于 **多个非层级组件之间共享数据**。
+
+#### **基本用法**
+
+1. **创建状态类**
+
+```c#
+public class PizzaSalesState
+{
+    public int PizzasSoldToday { get; set; }
+}
+```
+
+1. **注册服务（在** `Program.cs` **中）**
+
+```c#
+builder.Services.AddScoped<PizzaSalesState>();
+```
+
+1. **在组件中注入并使用**
+
+```c#
+@inject PizzaSalesState SalesState
+
+<p>Today, we've sold this many pizzas: @SalesState.PizzasSoldToday</p>
+
+<button @onclick="IncrementSales">Buy a Pizza</button>
+
+@code {
+    private void IncrementSales()
+    {
+        SalesState.PizzasSoldToday++;
+    }
+}
+```
+
+### 4. 选择合适的共享方式
+
+| 方式                                 | 适用场景                   | 组件层级          | 适用性                         |
+| ------------------------------------ | -------------------------- | ----------------- | ------------------------------ |
+| **组件参数（[Parameter]）**          | **父组件传递数据到子组件** | 父 → 子           | ✅ 适用于简单数据传递           |
+| **级联参数（[CascadingParameter]）** | **多层级组件共享数据**     | 父 → 孙（或更深） | ✅ 避免手动逐层传递             |
+| **AppState**                         | **全局状态管理**           | 任意组件          | ✅ 适用于多个非层级组件共享数据 |
+
+### 5. 结论
+
+- **仅在父子组件之间传递数据** → 组件参数（[Parameter]）
+- **数据需在多个层级的组件中使用** → 级联参数（[CascadingParameter]）
+- **数据需在整个应用中共享** → `AppState`（作用域服务）
 
 ## 数据绑定
 
@@ -246,216 +259,198 @@
       }
   ```
 
-
 ## 路由组件
 
-* `Blazor` 使用名为 `Router` 组件的专用组件路由请求，该组件在 `App.razor` 中的配置如下
+### 1. 路由基础
 
-  ```c#
-  <Router AppAssembly="@typeof(Program).Assembly">
-      <Found Context="routeData">
-          <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
-      </Found>
-      <NotFound>
-          <p>Sorry, we haven't found any pizzas here.</p>
-      </NotFound>
-  </Router>
-  ```
+`Blazor` 使用 `Router` 组件管理路由，通常在 `App.razor` 文件中进行配置：
 
-* 应用启动时，`Blazor` 会检查 `AppAssembly` 属性，以了解它应扫描哪个程序集。 它会扫描该程序集，以寻找具有 `RouteAttribute` 的组件。 `Blazor` 使用这些值编译 `RouteData` 对象，该对象指定如何将请求路由到组件。 编写应用代码时，可以在每个组件中使用 `@page` 指令来修复 `RouteAttribute`
+```c#
+<Router AppAssembly="@typeof(Program).Assembly">
+    <Found Context="routeData">
+        <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
+    </Found>
+    <NotFound>
+        <p>Sorry, we haven't found any pizzas here.</p>
+    </NotFound>
+</Router>
+```
 
-* `<Found>` 标记指定在运行时处理路由的组件：`RouteView` 组件。 此组件接收 `RouteData` 对象以及来自 `URI` 或查询字符串的任何参数。 然后，它呈现指定的组件及其布局。 可以使用 `<Found>` 标记来指定默认布局，当所选组件未通过 `@layout` 指令指定布局时，将使用该布局
+#### 关键属性
 
-* `<NotFound>` 标记指定在不存在匹配路由时返回给用户的内容。 上面的示例返回单个 `<p>` 段落，但你可以呈现更复杂的 HTML。 例如，可能包括指向主页或站点管理员联系人页面的链接
+- **`AppAssembly`**：应用启动时，`Blazor` 扫描 `AppAssembly` 以查找带有 `RouteAttribute` 的组件。
 
-* 在 `Blazor` 组件中，`@page` 指令指定该组件应直接处理请求。 可以在 `@page` 指令中指定 `RouteAttribute`，方法是以字符串的形式传递它。 例如，使用此属性指定页面处理对 /Pizzas 路由的请求：`@page "pizzas"`
+- **`<Found>`**：匹配路由时，渲染 `RouteView` 组件，该组件解析 `RouteData` 并渲染目标组件。
 
-* 如果要指定到组件的多个路由，请使用两个或更多 `@page` 指令，如本例所示
+- **`<NotFound>`**：当找不到匹配路由时，显示自定义内容。
+
+- **`@page` 指令**：用于指定组件的路由路径，例如 `@page "/pizzas"`。支持多个路由：
 
   ```c#
   @page "/Pizzas"
   @page "/CustomPizzas"
   ```
 
-### NavigationManager 导航
+### 2. NavigationManager 导航
 
-* 可以使用 `NavigationManager` 对象来获取所有这些值。 必须将对象注入组件，然后才能访问其属性
+`NavigationManager` 提供当前 `URL` 相关信息，并可用于页面跳转。
 
-  * 当前完整 URI，例如 `http://www.contoso.com/pizzas/margherita?extratopping=pineapple`。
-  * 基本 URI，例如 `http://www.contoso.com/`。
-  * 基本相对路径，例如 `pizzas/margherita`。
-  * 查询字符串，例如 `?extratopping=pineapple`。
+#### 获取 `URL` 相关信息
 
-  ```c#
-  @page "/pizzas"
-  @inject NavigationManager NavManager
-  
-  <h1>Buy a Pizza</h1>
-  
-  <p>I want to order a: @PizzaName</p>
-  
-  <a href=@HomePageURI>Home Page</a>
-  
-  @code {
-      [Parameter]
-      public string PizzaName { get; set; }
-      
-      public string HomePageURI { get; set; }
-      
-      protected override void OnInitialized()
-      {
-          HomePageURI = NavManager.BaseUri;
-      }
-  }
-  ```
+- `NavManager.Uri`：完整 `URI`（如 `http://www.contoso.com/pizzas/margherita?extratopping=pineapple`）。
+- `NavManager.BaseUri`：基本 `URI`（如 `http://www.contoso.com/`）。
+- `NavManager.ToAbsoluteUri(NavManager.Uri).Query`：查询字符串（如 `?extratopping=pineapple`）。
 
-* 若要访问查询字符串，必须分析完整 URI。 若要执行此分析，请使用 `Microsoft.AspNetCore.WebUtilities` 程序集中的 `QueryHelpers` 类：
+#### 示例：获取 `BaseUri`
 
-  ```c#
-  @page "/pizzas"
-  @using Microsoft.AspNetCore.WebUtilities
-  @inject NavigationManager NavManager
-  
-  <h1>Buy a Pizza</h1>
-  
-  <p>I want to order a: @PizzaName</p>
-  
-  <p>I want to add this topping: @ToppingName</p>
-  
-  @code {
-      [Parameter]
-      public string PizzaName { get; set; }
-      
-      private string ToppingName { get; set; }
-      
-      protected override void OnInitialized()
-      {
-          var uri = NavManager.ToAbsoluteUri(NavManager.Uri);
-          if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("extratopping", out var extraTopping))
-          {
-              ToppingName = System.Convert.ToString(extraTopping);
-          }
-      }
-  }
-  ```
+```c#
+@page "/pizzas"
+@inject NavigationManager NavManager
 
-* 通过调用 `NavigationManager.NavigateTo()` 方法，使用 `NavigationManager` 对象将用户转交给代码中的另一个组件：`NavManager.NavigateTo("buypizza");`
+<h1>Buy a Pizza</h1>
+<p>I want to order a: @PizzaName</p>
+<a href=@HomePageURI>Home Page</a>
 
-* 传递给 `NavigateTo()` 方法的字符串是要发送给用户的绝对或相对 URI。 请确保已在该地址设置组件。 对于上述代码，具有 `@page "/buypizza"` 指令的组件将处理此路由
+@code {
+    [Parameter]
+    public string PizzaName { get; set; }
+    public string HomePageURI { get; set; }
+    
+    protected override void OnInitialized()
+    {
+        HomePageURI = NavManager.BaseUri;
+    }
+}
+```
 
-### NavLink 组件
+#### 解析查询字符串
 
-* 在 `Blazor` 中，使用 `NavLink` 组件来呈现 `<a>` 标记，因为它在链接的 `href` 属性与当前 `URL` 匹配时将切换 `active` `CSS` 类
-* `NavLink` 组件中的 `Match` 属性用于管理突出显示链接的时间。 有两个选项
-  * `NavLinkMatch.All`：使用此值时，只有在链接的 `href` 与当前 URL 完全匹配时，该链接才突出显示为活动链接
-  * `NavLinkMatch.Prefix`：使用此值时，当链接的 `href` 与当前 URL 的第一部分匹配时，该链接就突出显示为活动链接。 例如，假设你拥有链接 `<NavLink href="pizzas" Match="NavLinkMatch.Prefix">`。 当前 URL 为 `http://www.contoso.com/pizzas` 及该 URL 中的任意位置（例如 `http://www.contoso.com/pizzas/formaggio`）时，此链接将突出显示为活动链接。 此行为可帮助用户了解自己当前正在查看网站的哪一部分
+```c#
+@using Microsoft.AspNetCore.WebUtilities
 
-### 路由参数
+protected override void OnInitialized()
+{
+    var uri = NavManager.ToAbsoluteUri(NavManager.Uri);
+    if (QueryHelpers.ParseQuery(uri.Query).TryGetValue("extratopping", out var extraTopping))
+    {
+        ToppingName = System.Convert.ToString(extraTopping);
+    }
+}
+```
 
-* http://www.contoso.com/favoritepizza/hawaiian 若要获取 `hawaiian`，可以将其声明为路由参数
+#### 代码导航
 
-* 使用 `@page` 指令指定将作为路由参数传递给组件的 URI 部分
+使用 `NavigateTo()` 进行页面跳转：
 
-  ```c#
-  @page "/FavoritePizzas/{favorite}"
-  
-  <h1>Choose a Pizza</h1>
-  
-  <p>Your favorite pizza is: @Favorite</p>
-  
-  @code {
-      [Parameter]
-      public string Favorite { get; set; }
-  }
-  ```
+```c#
+NavManager.NavigateTo("buypizza");
+```
 
-* 组件参数是从父组件发送到子组件的值。 在父组件中，以子组件标记属性的形式指定组件参数值。 路由参数的指定方式不同。 它们作为 URI 的一部分指定。 Blazor 路由器在后台截获这些值，并将其作为组件值发送到组件，因此你可以以相同的方式访问它们。 路由参数不区分大小写，将转发给同名的组件参数。
+### 3. NavLink 组件（导航链接）
 
-### 可选路由参数
+`Blazor` 使用 `NavLink` 组件创建导航链接。它会在 `href` 匹配当前 `URL` 时自动添加 `active` `CSS` 类。
 
-* 要使路由参数可选，请使用问号
+```c#
+<NavLink href="pizzas" Match="NavLinkMatch.Prefix">Pizzas</NavLink>
+```
 
-  ```c#
-  @page "/FavoritePizzas/{favorite?}"
-  
-  <h1>Choose a Pizza</h1>
-  
-  <p>Your favorite pizza is: @Favorite</p>
-  
-  @code {
-      [Parameter]
-      public string Favorite { get; set; }
-      
-      protected override void OnInitialized()
-      {
-          Favorite ??= "Fiorentina";
-      }
-  }
-  ```
+#### `Match` 属性
 
-### 路由约束
+- `NavLinkMatch.All`：完全匹配 `URL` 时高亮。
+- `NavLinkMatch.Prefix`：`URL` 以 `href` 开头时高亮。
 
-* 路由参数的特定类型称为“路由约束”
+### 4. 路由参数
 
-  ```c#
-  @page "/FavoritePizza/{preferredsize:int}"
-  
-  <h1>Choose a Pizza</h1>
-  
-  <p>Your favorite pizza size is: @FavoriteSize inches.</p>
-  
-  @code {
-      [Parameter]
-      public int FavoriteSize { get; set; }
-  }
-  ```
+#### 基本路由参数
 
-* 可以在约束中使用其他这些类型：
+`http://www.contoso.com/favoritepizza/hawaiian` 传递 `hawaiian` 参数：
 
-  | 约束     | 示例                 | 匹配项示例                                                   |
-  | :------- | :------------------- | :----------------------------------------------------------- |
-  | bool     | {vegan:bool}         | `http://www.contoso.com/pizzas/true`                         |
-  | datetime | {birthdate:datetime} | `http://www.contoso.com/customers/1995-12-12`                |
-  | decimal  | {maxprice:decimal}   | `http://www.contoso.com/pizzas/15.00`                        |
-  | double   | {weight:double}      | `http://www.contoso.com/pizzas/1.234`                        |
-  | float    | {weight:float}       | `http://www.contoso.com/pizzas/1.564`                        |
-  | guid     | {pizza id:guid}      | `http://www.contoso.com/pizzas/CD2C1638-1638-72D5-1638-DEADBEEF1638` |
-  | long     | {totals ales:long}   | `http://www.contoso.com/pizzas/568192454`                    |
+```c#
+@page "/FavoritePizzas/{favorite}"
+<p>Your favorite pizza is: @Favorite</p>
 
-### 设置捕获全部路由参数
+@code {
+    [Parameter]
+    public string Favorite { get; set; }
+}
+```
 
-* 假设用户尝试通过请求 URI `http://www.contoso.com/favoritepizza/margherita/hawaiian` 来指定两个喜好。 页面将显示消息“你喜欢的披萨是：玛格丽特”，并忽略子文件夹“夏威夷”。 可以使用捕获全部路由参数来更改此行为，该参数捕获跨多个 URI 文件夹边界（正斜杠）的路径。 将星号 (`*`) 作为路由参数名称前缀，使路由参数捕获全部
+#### 可选路由参数
 
-  ```c#
-  @page "/FavoritePizza/{*favorites}"
-  
-  <h1>Choose a Pizza</h1>
-  
-  <p>Your favorite pizzas are: @Favorites</p>
-  
-  @code {
-      [Parameter]
-      public string Favorites { get; set; }
-  }
-  ```
+```c#
+@page "/FavoritePizzas/{favorite?}"
 
-* 使用相同的请求 URI，页面现在会显示消息“你喜欢的披萨是：玛格丽特/夏威夷风味”
+@code {
+    [Parameter]
+    public string Favorite { get; set; }
+    
+    protected override void OnInitialized()
+    {
+        Favorite ??= "Fiorentina";
+    }
+}
+```
+
+#### 路由参数约束
+
+```c#
+@page "/FavoritePizza/{preferredsize:int}"
+<p>Your favorite pizza size is: @FavoriteSize inches.</p>
+
+@code {
+    [Parameter]
+    public int FavoriteSize { get; set; }
+}
+```
+
+#### 常见参数约束
+
+| 约束       | 示例                   | 匹配示例                                                   |
+| ---------- | ---------------------- | ---------------------------------------------------------- |
+| `bool`     | `{vegan:bool}`         | `http://www.contoso.com/pizzas/true`                       |
+| `datetime` | `{birthdate:datetime}` | `http://www.contoso.com/customers/1995-12-12`              |
+| `decimal`  | `{maxprice:decimal}`   | `http://www.contoso.com/pizzas/15.00`                      |
+| `double`   | `{weight:double}`      | `http://www.contoso.com/pizzas/1.234`                      |
+| `float`    | `{weight:float}`       | `http://www.contoso.com/pizzas/1.564`                      |
+| `guid`     | `{pizzaId:guid}`       | `http://www.contoso.com/pizzas/CD2C1638-1638-DEADBEEF1638` |
+| `long`     | `{totalsales:long}`    | `http://www.contoso.com/pizzas/568192454`                  |
+
+### 5. 捕获全部路由参数
+
+捕获多个 `URI` 片段：
+
+```c#
+@page "/FavoritePizza/{*favorites}"
+<p>Your favorite pizzas are: @Favorites</p>
+
+@code {
+    [Parameter]
+    public string Favorites { get; set; }
+}
+```
+
+**示例**：
+
+- `http://www.contoso.com/favoritepizza/margherita/hawaiian`
+- 页面显示 `Your favorite pizzas are: margherita/hawaiian`
 
 ## Blzaor布局
 
-* 使用布局组件来简化和重用通用 UI 元素
+### 1. **Blazor 布局概述**
 
-* Blazor 布局是特定类型的组件，因此编写 Blazor 布局与编写其他组件以在应用中呈现 UI 类似
+- **布局组件的作用**：简化和重用通用 UI 元素。
+- **布局组件与其他组件的相似性**：Blazor 布局是特定类型的组件，其编写方式与其他 UI 组件相似。
 
-* 文件通常存储在应用的“`Shared`”文件夹中，但你可以选择将其存储在使用它的组件可访问的任何位置
+### 2. **布局组件的基本要求**
 
-* Blazor 布局组件有两个独特的要求
+- **继承**：必须继承 `LayoutComponentBase` 类。
 
-  * 必须继承 `LayoutComponentBase` 类
-  * 必须在要呈现引用的组件内容的位置包含 `@Body` 指令
+- **包含 `@Body` 指令**：必须在组件中指定一个位置，放置 `@Body` 指令来呈现组件内容。
 
-  ```c#
-  @inherits LayoutComponentBase
+  示例代码：
+
+  ```
+  c#复制编辑@inherits LayoutComponentBase
   
   <header>
       <h1>Blazing Pizza</h1>
@@ -479,28 +474,40 @@
   }
   ```
 
-* 布局组件不包括 `@page` 指令，因为它们不直接处理请求，不应为它们创建路由
+### 3. **布局组件的其他特点**
 
-* 如果要将模板应用于文件夹中的所有 Blazor 组件，可以使用 `_Imports.razor` 文件作为快捷方式
+- **不需要 `@page` 指令**：布局组件不处理请求，因此不应为它们创建路由。
+- **文件存放位置**：布局组件通常存放在 `Shared` 文件夹中，但也可以选择其他位置。
 
-* Blazor 编译器找到此文件时，会自动在文件夹中的所有组件中包含其指令。 使用此方法，无需再将 `@layout` 指令添加到每个组件，适用于 `_Imports.razor` 文件所在文件夹及其所有子文件夹中的组件
+### 4. **布局组件的全局应用**
 
-* 请勿向项目的根文件夹中的 `_Imports.razor` 文件添加 `@layout` 指令，因为这会导致布局的无限循环
+- **使用 `_Imports.razor` 文件简化布局应用**：
 
-* 如果要将默认布局应用于 Web 应用的所有文件夹中的所有组件，可以在 `App.razor` 组件中执行此操作
+  - 在该文件中指定布局组件，将自动应用到文件夹内所有组件，免去手动添加 `@layout` 指令。
+  - `_Imports.razor` 文件中的布局指令适用于该文件夹及其所有子文件夹。
 
-  ```c#
-  <Router AppAssembly="@typeof(Program).Assembly">
-      <Found Context="routeData">
-          <RouteView RouteData="@routeData" DefaultLayout="@typeof(BlazingPizzasMainLayout)" />
-      </Found>
-      <NotFound>
-          <p>Sorry, there's nothing at this address.</p>
-      </NotFound>
-  </Router>
-  ```
+  > 注意：请勿向项目的根文件夹中的 `_Imports.razor` 文件添加 `@layout` 指令，因为这会导致布局的无限循环
 
-* 在各自 `@layout` 指令或 `_Imports.razor` 文件中指定了布局的组件将覆盖此默认布局设置
+- **在 `App.razor` 中设置默认布局**：
+
+  - 使用 `App.razor` 组件配置应用中的默认布局。
+
+  - 示例代码：
+
+    ```
+    c#复制编辑<Router AppAssembly="@typeof(Program).Assembly">
+        <Found Context="routeData">
+            <RouteView RouteData="@routeData" DefaultLayout="@typeof(BlazingPizzasMainLayout)" />
+        </Found>
+        <NotFound>
+            <p>Sorry, there's nothing at this address.</p>
+        </NotFound>
+    </Router>
+    ```
+
+### 5. **布局覆盖规则**
+
+- 如果在组件中使用了 `@layout` 指令或在 `_Imports.razor` 中指定了布局，则该组件的布局会覆盖全局默认布局设置。
 
 ## 事件处理程序
 

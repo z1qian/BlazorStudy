@@ -1,0 +1,87 @@
+﻿@page "/login"
+@using System.ComponentModel.DataAnnotations
+@using System.Text.Json
+@attribute [ExcludeFromInteractiveRouting]
+@using System.Security.Claims;
+@using Microsoft.AspNetCore.Authentication;
+@using Microsoft.AspNetCore.Authentication.Cookies;
+
+<h3>Login</h3>
+<p>组件正在执行的位置：@RendererInfo.Name</p>
+<p>组件在呈现时是否支持交互：@RendererInfo.IsInteractive</p>
+<p>组件的已分配呈现模式：@(AssignedRenderMode?.ToString() ?? "静态服务器渲染")</p>
+
+<Form Name="loginForm" Model="@LoginModel" Method="HttpMethod.Post" OnFinish="OnFinish" OnFinishFailed="OnFinishFailed" LabelColSpan="8" WrapperColSpan="10" Enhance>
+    <FormItem Label="用户名">
+        <Input @bind-Value="@LoginModel.Username" />
+    </FormItem>
+    <FormItem Label="密码">
+        <InputPassword @bind-Value="@LoginModel.Password" />
+    </FormItem>
+    <FormItem Label="" WrapperColOffset="8" WrapperColSpan="8">
+        <Checkbox @bind-Value="LoginModel.RememberMe">Remember me</Checkbox>
+    </FormItem>
+    <FormItem WrapperColOffset="8" WrapperColSpan="8">
+        <Button Type="ButtonType.Primary" HtmlType="submit" Size="ButtonSize.Default">
+            登录
+        </Button>
+    </FormItem>
+</Form>
+
+@code {
+    [CascadingParameter] private HttpContext HttpContext { get; set; } = default!;
+
+    public class Model
+    {
+        [Required]
+        public required string Username { get; set; }
+        [Required]
+        public required string Password { get; set; }
+
+        public bool RememberMe { get; set; } = true;
+    }
+
+    [SupplyParameterFromForm]
+    private Model LoginModel { get; set; } = new Model()
+        {
+            Username = "admin",
+            Password = "admin123"
+        };
+
+    private async Task OnFinish(EditContext editContext)
+    {
+        if (HttpContext.User.Identity.IsAuthenticated)
+        {
+            Log();
+            return;
+        }
+
+        var claims = new List<Claim>
+        {
+            new Claim(ClaimTypes.Name, LoginModel.Username),
+            new Claim(ClaimTypes.Role, "Administrator"),
+        };
+
+        var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+
+        var authProperties = new AuthenticationProperties
+        {
+            IsPersistent = true, // 允许持久化
+        };
+
+        await HttpContext.SignInAsync(
+            CookieAuthenticationDefaults.AuthenticationScheme,
+            new ClaimsPrincipal(claimsIdentity),
+            authProperties);
+    }
+
+    private void Log()
+    {
+        Console.WriteLine(JsonSerializer.Serialize(HttpContext.User.Identity));
+    }
+
+    private void OnFinishFailed(EditContext editContext)
+    {
+        Console.WriteLine($"Failed:{JsonSerializer.Serialize(LoginModel)}");
+    }
+}
