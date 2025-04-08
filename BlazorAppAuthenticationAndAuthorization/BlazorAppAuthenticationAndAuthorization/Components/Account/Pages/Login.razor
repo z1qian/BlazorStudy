@@ -1,0 +1,61 @@
+﻿@page "/Login"
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Authentication
+@using Microsoft.AspNetCore.Authentication.Cookies
+
+@inject NavigationManager NavigationManager
+
+<PageTitle>Log in</PageTitle>
+
+<h1>Log in</h1>
+<EditForm method="post" OnValidSubmit="LoginUser" Model="Input" FormName="login">
+    <div class="form-floating mb-3">
+        <InputText @bind-Value="Input.Email" id="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" />
+        <label for="Input.Email" class="form-label">Email</label>   
+    </div>
+    <div class="form-floating mb-3">
+        <InputText type="password" @bind-Value="Input.Password" id="Input.Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="password" />
+        <label for="Input.Password" class="form-label">Password</label>  
+    </div>
+    <button>登录</button>
+</EditForm>
+
+@code {
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!;
+
+    [SupplyParameterFromForm]
+    private InputModel Input { get; set; } = new();
+
+    [SupplyParameterFromQuery]
+    private string? ReturnUrl { get; set; }
+
+    public async Task LoginUser()
+    {
+        // 创建 Claims
+        var claims = new List<Claim>
+    {
+        new Claim(ClaimTypes.Name, "zzx"),
+        new Claim(ClaimTypes.Role, "admin"), // 如有角色
+        // 你也可以添加自定义的 Claim
+    };
+
+        var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+        var authProperties = new AuthenticationProperties
+        {
+            IsPersistent = true,
+            ExpiresUtc = DateTimeOffset.UtcNow.AddHours(1)
+        };
+
+        await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity), authProperties);
+
+        NavigationManager.NavigateTo(ReturnUrl ?? "/"); // 登录成功后跳转页面
+    }
+
+    private sealed class InputModel
+    { 
+        public string Email { get; set; } = "admin";
+
+        public string Password { get; set; } = "123456";
+    }
+}
